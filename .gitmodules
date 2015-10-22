@@ -1,0 +1,6 @@
+[submodule "oglw"]
+	path = oglw
+	url = git@github.com:karimnaaji/oglw.git
+[submodule "libLAS"]
+	path = libLAS
+	url = git@github.com:libLAS/libLAS.git
