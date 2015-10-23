@@ -29,9 +29,9 @@ static std::unique_ptr<Mesh<VoxelVert>> voxels(std::vector<VoxelVert>& _vertices
 
 // ------------------------------------------------------------------------------
 // OGLW App
-class TestApp : public OGLW::App {
+class VoxelLidar : public OGLW::App {
     public:
-        TestApp() : OGLW::App("OGLW::VoxelLidar", 800, 600) {}
+        VoxelLidar() : OGLW::App("OGLW::VoxelLidar", 800, 600) {}
         void update(float _dt) override;
         void render(float _dt) override;
         void init() override;
@@ -41,9 +41,9 @@ class TestApp : public OGLW::App {
         uptr<Mesh<VoxelVert>> m_geometry;
 
 };
-OGLWMain(TestApp);
+OGLWMain(VoxelLidar);
 
-void TestApp::init() {
+void VoxelLidar::init() {
     int posx = 6830;
     int posy = 2475;
 
@@ -84,11 +84,11 @@ void TestApp::init() {
     m_geometry = voxels(vertices);
 }
 
-void TestApp::update(float _dt) {
+void VoxelLidar::update(float _dt) {
     updateFreeFlyCamera(_dt, 'S', 'W', 'A', 'D', 1e-3f, 55.f);
 }
 
-void TestApp::render(float _dt) {
+void VoxelLidar::render(float _dt) {
     //glm::vec3 lightPos = glm::vec3(0.f, 0.f, 0.f);
     glm::mat4 mvp = m_camera.getProjectionMatrix() * m_camera.getViewMatrix();
     glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(mvp)));
