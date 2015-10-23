@@ -2,9 +2,12 @@
 #include <string>
 #include <memory>
 #include <fstream>
+#include <unordered_set>
 #include <iostream>
 #include "oglw.h"
 #include "liblas/liblas.hpp"
+
+#define CLAMP(val, min, max) ((val) < (min) ? (min) : ((val > max) ? (max) : (val)))
 
 template <class T>
 using uptr = std::unique_ptr<T>;
@@ -67,8 +70,14 @@ void VoxelLidar::init() {
     std::cout << "Signature: " << header.GetFileSignature() << '\n';
     std::cout << "Points count: " << header.GetPointRecordsCount() << '\n';
 
-    std::vector<VoxelVert> vertices;
+    struct set_comparator {
+        size_t operator()(const glm::vec3& p) const {
+            return std::hash<int>()(p.x) ^ std::hash<int>()(p.y) ^ std::hash<int>()(p.z);
+        }
+    };
+    std::unordered_set<glm::vec3, set_comparator> positions;
 
+    int maxHeight = -INT_MAX;
     while (reader.ReadNextPoint()) {
         liblas::Point const& p = reader.GetPoint();
 
@@ -76,10 +85,19 @@ void VoxelLidar::init() {
         int y = (int)floor(p.GetY() - (posy * 100));
         int z = (int)floor(p.GetZ());
 
-        vertices.push_back({{x, -z, y}, glm::vec3(z)});
+        maxHeight = std::max(z, maxHeight);
+        positions.insert({x, -z, y});
     }
 
-    // TODO: remove duplicates
+    std::vector<VoxelVert> vertices;
+
+    for (const auto& p : positions) {
+        // TODO: better coloring
+        glm::vec3 color = glm::vec3(CLAMP((std::abs(p.y) - 400) / 30, 0.0, 1.0));
+        vertices.push_back({p, color});
+    }
+
+    std::cout << "Voxel number: " << vertices.size() << std::endl;
 
     m_geometry = voxels(vertices);
 }
@@ -89,7 +107,7 @@ void VoxelLidar::update(float _dt) {
 }
 
 void VoxelLidar::render(float _dt) {
-    //glm::vec3 lightPos = glm::vec3(0.f, 0.f, 0.f);
+    glm::vec3 lightPos = glm::vec3(190.f, -490.f, 430.f);
     glm::mat4 mvp = m_camera.getProjectionMatrix() * m_camera.getViewMatrix();
     glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(mvp)));
 
@@ -106,7 +124,6 @@ void VoxelLidar::render(float _dt) {
     //m_shader->setUniform("light.color", glm::vec3(0.6, 0.68, 0.68));
     //m_shader->setUniform("light.ambiant", glm::vec3(0.7));
     //m_shader->setUniform("light.diffuseIntensity", 0.5f);
-    //m_shader->setUniform("light.specularIntensity", 5.0f);
 
     m_geometry->draw(*m_shader);
 

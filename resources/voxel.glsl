@@ -36,8 +36,8 @@ void main() {
 
     fColor = gColor[0];
     vec3 p = gl_in[0].gl_Position.xyz;
-    vec4 sp = mvp * gl_in[0].gl_Position;
-    sp /= sp.w;
+
+    // TODO: CLIPPPPPP!!!!
 
     fNormal = normalize(normalMatrix * vec3(0.0, 0.0, -1.0));
     fPos = vec4(p - vx - vy - vz, 1);
@@ -144,7 +144,6 @@ struct Light {
     vec3 color;
     vec3 ambiant;
     float diffuseIntensity;
-    float specularIntensity;
 };
 
 uniform vec3 viewPos;
@@ -164,26 +163,17 @@ vec3 calcLight(Light light, vec3 vertexToLight, vec3 normal, vec3 vertexToEye, f
     vec3 ambiantColor = light.color * light.ambiant;
     float cosineDiffuseTerm = dot(normal, vertexToLight);
     vec3 diffuseColor = vec3(0);
-    vec3 specularColor = vec3(0);
 
     if (cosineDiffuseTerm < 0) {
         diffuseColor = light.color * light.diffuseIntensity * cosineDiffuseTerm;
         vec3 lightReflect = normalize(reflect(vertexToLight, normal));
-        float specularFactor = dot(vertexToEye, lightReflect);
-
-        if (specularFactor < 0) {
-            specularFactor = pow(specularFactor, light.specularIntensity);
-            specularColor = light.color * materialSpecularIntensity * specularFactor;
-        }
     }
 
-    return ambiantColor + specularColor + diffuseColor;
+    return ambiantColor + diffuseColor;
 }
 
 void main(void) {
-    // TODO: add lightning
-    outColor = vec4(fNormal, 1.0); return;
-
+    outColor = vec4(fColor, 1.0); return;
     vec4 viewVertexPos = view * fPos;
     vec3 vertexToEye = normalize(viewPos - viewVertexPos.xyz);
     vec4 viewLightPosition = view * vec4(light.position, 1.0);
