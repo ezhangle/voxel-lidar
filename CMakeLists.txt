@@ -15,6 +15,8 @@ set(BUILD_OSGEO4W FALSE CACHE BOOL "")
 set(WITH_LASZIP TRUE CACHE BOOL "")
 add_subdirectory(${PROJECT_SOURCE_DIR}/libLAS)
 include_directories(${PROJECT_SOURCE_DIR}/libLAS/include)
+find_package(Boost COMPONENTS filesystem REQUIRED)
+include_directories(${Boost_INCLUDE_DIRS})
 
 # include OGLW headers
 include_directories(${OGLW_INCLUDE_DIRS})
